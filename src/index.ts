@@ -1,7 +1,7 @@
 import { Elysia } from 'elysia';
 import { userRoutes } from './routes/user-routes';
 
-const app = new Elysia()
+export const app = new Elysia()
   .get('/', () => ({ 
     status: 'ok', 
     message: 'Backend server is running correctly!' 
