@@ -38,7 +38,11 @@ export const userRoutes = new Elysia({ prefix: '/api' })
       nama: t.String(),
       email: t.String(),
       password: t.String()
-    })
+    }),
+    detail: {
+      summary: 'Registrasi Pengguna Baru',
+      tags: ['Authentication']
+    }
   })
   .post('/users/login', async ({ body }) => {
     const token = await loginUser(body);
@@ -47,7 +51,11 @@ export const userRoutes = new Elysia({ prefix: '/api' })
     body: t.Object({
       email: t.String(),
       password: t.String()
-    })
+    }),
+    detail: {
+      summary: 'Login Pengguna (Mendapatkan Token)',
+      tags: ['Authentication']
+    }
   })
   .get('/users/current', async ({ token }) => {
     if (!token) {
@@ -56,6 +64,11 @@ export const userRoutes = new Elysia({ prefix: '/api' })
 
     const user = await getCurrentUser(token);
     return { data: user };
+  }, {
+    detail: {
+      summary: 'Dapatkan Profil Pengguna Saat Ini',
+      tags: ['Authentication']
+    }
   })
   .delete('/users/logout', async ({ token }) => {
     if (!token) {
@@ -64,4 +77,9 @@ export const userRoutes = new Elysia({ prefix: '/api' })
 
     await logoutUser(token);
     return { data: 'ok' };
+  }, {
+    detail: {
+      summary: 'Logout (Menghapus Sesi)',
+      tags: ['Authentication']
+    }
   });
