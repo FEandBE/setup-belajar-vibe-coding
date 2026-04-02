@@ -9,6 +9,13 @@ export interface RegisterUserParams {
   password: string;
 }
 
+/**
+ * Mendaftarkan pengguna baru ke dalam database.
+ * Melakukan pengecekan email ganda dan melakukan hashing pada kata sandi.
+ * 
+ * @param params Data registrasi pengguna (nama, email, password)
+ * @returns Status keberhasilan objek
+ */
 export const registerUser = async (params: RegisterUserParams) => {
   const { nama, email, password } = params;
 
@@ -41,6 +48,13 @@ export interface LoginUserParams {
   password: string;
 }
 
+/**
+ * Melakukan autentikasi pengguna berdasarkan email dan password.
+ * Jika berhasil, akan menghasilkan UUID baru sebagai session token dan menyimpannya ke database.
+ * 
+ * @param params Data kredensial pengguna (email, password)
+ * @returns Session token (UUID) yang valid
+ */
 export const loginUser = async (params: LoginUserParams) => {
   const { email, password } = params;
 
@@ -72,6 +86,13 @@ export const loginUser = async (params: LoginUserParams) => {
 
   return token;
 };
+/**
+ * Mengambil data profil pengguna yang sedang login berdasarkan session token.
+ * Melakukan operasi JOIN antara tabel sessions dan users.
+ * 
+ * @param token Session token (UUID) dari pengguna
+ * @returns Objek profil pengguna (id, nama, email, created_at)
+ */
 export const getCurrentUser = async (token: string) => {
   // 1. Join sessions and users to find the user by token
   const result = await db
@@ -92,6 +113,13 @@ export const getCurrentUser = async (token: string) => {
 
   return result;
 };
+/**
+ * Mengakhiri sesi pengguna (Logout) dengan menghapus token dari database.
+ * Mencegah token tersebut digunakan kembali untuk akses selanjutnya.
+ * 
+ * @param token Session token (UUID) yang akan dihapus
+ * @returns Status keberhasilan operasi
+ */
 export const logoutUser = async (token: string) => {
   // Direct delete and check if any rows were affected using .returning()
   const deletedSessions = await db
