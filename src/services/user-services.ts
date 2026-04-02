@@ -52,13 +52,13 @@ export const loginUser = async (params: LoginUserParams) => {
     .get();
 
   if (!user) {
-    throw new Error('email atau passwor salah');
+    throw new Error('email atau password salah');
   }
 
   // 2. Verify password
   const isPasswordValid = await bcrypt.compare(password, user.password);
   if (!isPasswordValid) {
-    throw new Error('email atau passwor salah');
+    throw new Error('email atau password salah');
   }
 
   // 3. Generate session token (UUID)
@@ -91,4 +91,23 @@ export const getCurrentUser = async (token: string) => {
   }
 
   return result;
+};
+export const logoutUser = async (token: string) => {
+  // 1. Find if session exists
+  const session = await db
+    .select()
+    .from(sessions)
+    .where(eq(sessions.token, token))
+    .get();
+
+  if (!session) {
+    throw new Error('unauthorized');
+  }
+
+  // 2. Delete the session
+  await db
+    .delete(sessions)
+    .where(eq(sessions.token, token));
+
+  return 'ok';
 };
