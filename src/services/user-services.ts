@@ -72,3 +72,23 @@ export const loginUser = async (params: LoginUserParams) => {
 
   return token;
 };
+export const getCurrentUser = async (token: string) => {
+  // 1. Join sessions and users to find the user by token
+  const result = await db
+    .select({
+      id: users.id,
+      nama: users.username,
+      email: users.email,
+      created_at: users.createdAt,
+    })
+    .from(sessions)
+    .innerJoin(users, eq(sessions.userId, users.id))
+    .where(eq(sessions.token, token))
+    .get();
+
+  if (!result) {
+    throw new Error('unauthorized');
+  }
+
+  return result;
+};
