@@ -1,7 +1,6 @@
-import { drizzle } from 'drizzle-orm/mysql2';
-import mysql from 'mysql2/promise';
+import { drizzle } from 'drizzle-orm/bun-sqlite';
+import { Database } from 'bun:sqlite';
 import * as schema from './schema';
 
-const connection = await mysql.createConnection(process.env.DATABASE_URL!);
-
-export const db = drizzle(connection, { schema, mode: 'default' });
+const sqlite = new Database('sqlite.db');
+export const db = drizzle(sqlite, { schema });
