@@ -5,6 +5,13 @@ export const userRoutes = new Elysia({ prefix: '/api' })
   .onError(({ code, error, set }) => {
     const message = (error as any).message;
 
+    if (code === 'VALIDATION') {
+      set.status = 400;
+      return { 
+        data: 'validasi gagal', 
+        message: error.message // Lebih aman menggunakan .message dasar
+      };
+    }
     if (message === 'email sudah terdaftar') {
       return { data: 'email sudah terdaftar' };
     }
@@ -35,9 +42,9 @@ export const userRoutes = new Elysia({ prefix: '/api' })
     return { data: 'ok' };
   }, {
     body: t.Object({
-      nama: t.String(),
-      email: t.String(),
-      password: t.String()
+      nama: t.String({ minLength: 3, maxLength: 100 }),
+      email: t.String({ format: 'email', maxLength: 150 }),
+      password: t.String({ minLength: 6, maxLength: 255 })
     }),
     detail: {
       summary: 'Registrasi Pengguna Baru',
@@ -49,8 +56,8 @@ export const userRoutes = new Elysia({ prefix: '/api' })
     return { data: token };
   }, {
     body: t.Object({
-      email: t.String(),
-      password: t.String()
+      email: t.String({ maxLength: 150 }),
+      password: t.String({ maxLength: 255 })
     }),
     detail: {
       summary: 'Login Pengguna (Mendapatkan Token)',

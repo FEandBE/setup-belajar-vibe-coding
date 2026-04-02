@@ -2,7 +2,7 @@ import { Elysia } from 'elysia';
 import { swagger } from '@elysiajs/swagger';
 import { userRoutes } from './routes/user-routes';
 
-const app = new Elysia()
+export const app = new Elysia()
   .use(swagger({
     path: '/swagger',
     documentation: {
