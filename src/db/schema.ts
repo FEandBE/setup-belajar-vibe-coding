@@ -11,7 +11,7 @@ export const users = sqliteTable('users', {
 
 export const sessions = sqliteTable('sessions', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  token: text('token').notNull(),
+  token: text('token').notNull().unique(),
   userId: integer('user_id').notNull().references(() => users.id),
   createdAt: text('created_at').default('CURRENT_TIMESTAMP').notNull(),
 });
