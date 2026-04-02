@@ -1,17 +1,12 @@
 import { Elysia } from 'elysia';
-import { db } from './db';
-import { users } from './db/schema';
+import { userRoutes } from './routes/user-routes';
 
 const app = new Elysia()
-  .get('/', () => ({ status: 'ok', message: 'Elysia + Drizzle + MySQL is running!' }))
-  .get('/users', async () => {
-    try {
-      const allUsers = await db.select().from(users);
-      return allUsers;
-    } catch (error) {
-      return { error: 'Could not fetch users. Is the database running?' };
-    }
-  })
+  .get('/', () => ({ 
+    status: 'ok', 
+    message: 'Backend server is running correctly!' 
+  }))
+  .use(userRoutes) // Integrate new routes
   .listen(3000);
 
 console.log(
