@@ -49,6 +49,10 @@ export const userRoutes = new Elysia({ prefix: '/api' })
     detail: {
       summary: 'Registrasi Pengguna Baru',
       tags: ['Authentication']
+    },
+    response: {
+      200: t.Object({ data: t.String() }, { description: 'Status Berhasil' }),
+      400: t.Object({ data: t.String() }, { description: 'Gagal Validasi' })
     }
   })
   .post('/users/login', async ({ body }) => {
@@ -62,6 +66,10 @@ export const userRoutes = new Elysia({ prefix: '/api' })
     detail: {
       summary: 'Login Pengguna (Mendapatkan Token)',
       tags: ['Authentication']
+    },
+    response: {
+      200: t.Object({ data: t.String() }, { description: 'Session Token (UUID)' }),
+      400: t.Object({ data: t.String() }, { description: 'Email atau Password Salah' })
     }
   })
   .get('/users/current', async ({ token }) => {
@@ -75,6 +83,17 @@ export const userRoutes = new Elysia({ prefix: '/api' })
     detail: {
       summary: 'Dapatkan Profil Pengguna Saat Ini',
       tags: ['Authentication']
+    },
+    response: {
+      200: t.Object({
+        data: t.Object({
+          id: t.Number(),
+          nama: t.String(),
+          email: t.String(),
+          created_at: t.String()
+        })
+      }, { description: 'Data Profil Pengguna' }),
+      401: t.Object({ data: t.String() }, { description: 'Unauthorized / Token Invalid' })
     }
   })
   .delete('/users/logout', async ({ token }) => {
@@ -88,5 +107,9 @@ export const userRoutes = new Elysia({ prefix: '/api' })
     detail: {
       summary: 'Logout (Menghapus Sesi)',
       tags: ['Authentication']
+    },
+    response: {
+      200: t.Object({ data: t.String() }, { description: 'Sesi Berhasil Dihapus' }),
+      401: t.Object({ data: t.String() }, { description: 'Unauthorized / Token Invalid' })
     }
   });
