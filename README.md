@@ -1,159 +1,118 @@
-# Belajar Vibe Coding - Backend API
+# Belajar Vibe Coding
 
-Aplikasi ini adalah sistem backend RESTful API untuk fitur Autentikasi Pengguna (User Authentication). Proyek ini dibangun dengan fokus pada performa yang sangat cepat dan *Developer Experience* (DX) yang modern, menggunakan ekosistem **Bun**.
+A RESTful API application for User Management built with [Bun](https://bun.sh/) and [ElysiaJS](https://elysiajs.com/).
 
-Fitur utama meliputi: Pendaftaran pengguna (Register), Masuk (Login) berbasis sesi (Session Token), Pengambilan data profil, dan Keluar (Logout).
+## Deskripsi Aplikasi (Application Description)
 
----
+Aplikasi ini adalah backend service sederhana yang menyediakan fitur manajemen pengguna (User Management). Fitur utama yang tersedia meliputi registrasi pengguna baru, login untuk mendapatkan token otentikasi, mengambil data profil pengguna yang sedang login (current user), dan logout untuk menghapus sesi.
 
-## 🛠️ Technology Stack & Libraries
+## Technology Stack
 
-Proyek ini dibangun menggunakan teknologi mutakhir berikut:
+- **Runtime**: [Bun](https://bun.sh/) (v1.3+)
+- **Framework**: [Elysia](https://elysiajs.com/)
+- **ORM**: [Drizzle ORM](https://orm.drizzle.team/)
+- **Database**: MySQL
+- **Language**: TypeScript
 
-### Core Stack
-- **[Bun](https://bun.sh/)**: Runtime JavaScript/TypeScript super cepat *all-in-one* (Runtime, Package Manager, Bundler, dan Test Runner).
-- **[ElysiaJS](https://elysiajs.com/)**: Framework web ergonomis dan sangat cepat untuk Bun.
-- **[SQLite](https://sqlite.org/)**: Database relasional ringan (menggunakan driver bawaan `bun:sqlite`).
-- **[Drizzle ORM](https://orm.drizzle.team/)**: TypeScript ORM yang *type-safe* dan intuitif.
+## Library yang Digunakan
 
-### Libraries Utama
-- `elysia`: Foundation web framework.
-- `drizzle-orm` & `drizzle-kit`: ORM layer dan alat manajemen skema database.
-- `bcryptjs`: Digunakan untuk melakukan *hashing* pada password pengguna yang disimpan di database.
+- `elysia`: Web framework yang sangat cepat untuk Bun.
+- `drizzle-orm`: TypeScript ORM untuk query database.
+- `mysql2`: MySQL driver untuk Node.js/Bun.
+- `drizzle-kit`: CLI tool untuk Drizzle (digunakan untuk memanajemen schema database).
 
----
+## Arsitektur dan Struktur File
 
-## 📁 Arsitektur & Struktur Direktori
-
-Aplikasi ini mengadopsi pola **Service-Route Architecture** untuk memisahkan antara logika pengalihan URL (Routing) dengan logika bisnis utama.
-
-Seluruh file penamaan menggunakan huruf kecil yang dipisahkan oleh tanda hubung (*Kebab-case*, contoh: `user-routes.ts`).
+Proyek ini menggunakan pendekatan arsitektur berlapis (layered architecture) untuk memisahkan antara routing, business logic, dan koneksi database.
 
 ```text
-belajar-vibe-coding/
-├── src/                    # Direktori utama kode sumber (Source Code)
-│   ├── index.ts            # Entry point aplikasi & Inisialisasi Server Elysia
-│   ├── routes/             # Layer presentasi / endpoint (Mengatur request & response)
-│   │   └── user-routes.ts  # Endpoint untuk modul User
-│   ├── services/           # Layer logika bisnis & interaksi langsung dengan database (ORM)
-│   │   └── user-services.ts# Logika daftar, login, dll.
-│   └── db/                 # Konfigurasi Database
-│       ├── index.ts        # Koneksi database SQLite
-│       └── schema.ts       # Definisi struktur/tabel database Drizzle
-├── test/                   # Direktori untuk file unit testing
-│   └── user.test.ts        # File pengujian untuk semua API User
-├── sqlite.db               # File lokal database SQLite
-├── drizzle.config.ts       # Konfigurasi migrasi Drizzle ORM
-└── package.json            # Daftar dependensi & scripts
+.
+├── src/
+│   ├── db/
+│   │   ├── index.ts        # Konfigurasi koneksi database MySQL
+│   │   └── schema.ts       # Definisi schema/tabel database (Drizzle format)
+│   ├── routes/
+│   │   └── users-route.ts  # Definisi endpoint API untuk fitur pengguna
+│   ├── services/
+│   │   └── users-service.ts# Business logic (Register, Login, Get Current, Logout)
+│   └── index.ts            # Entry point aplikasi dan setup utama Elysia
+├── tests/
+│   └── users.test.ts       # Unit/Integration tests menggunakan test runner Bun
+├── drizzle.config.ts       # Konfigurasi setup Drizzle ORM
+├── package.json            # Daftar dependencies, NPM scripts, config
+└── bun.lock                # Lockfile dependensi dari Bun
 ```
 
----
+## Schema Database
 
-## 🗄️ Database Schema
+Terdapat 2 tabel utama dalam sistem ini:
 
-Sistem ini didukung oleh dua tabel utama yang didefinisikan menggunakan Drizzle ORM.
+**1. Tabel `users`**
+Menyimpan data otentikasi dan profil pengguna.
+- `id`: `INT` (Primary Key, Auto Increment)
+- `name`: `VARCHAR(255)` (Not Null)
+- `email`: `VARCHAR(255)` (Not Null, Unique)
+- `password`: `VARCHAR(255)` (Not Null)
+- `createdAt`: `TIMESTAMP` (Default Current Timestamp)
 
-1. **`users` Table**
-   - `id` (Integer, Primary Key, Auto Increment)
-   - `username` (Text, Not Null) - Nama pengguna.
-   - `email` (Text, Unique, Not Null) - Alamat surel.
-   - `password` (Text, Not Null) - Kata sandi yang sudah di-*hash* via bcrypt.
-   - `createdAt` (Text, Not Null) - Timestamp bawaan.
-   - `updatedAt` (Text, Not Null) - Timestamp saat *update*.
+**2. Tabel `sessions`**
+Menyimpan token sesi pengguna yang sedang aktif (login).
+- `id`: `INT` (Primary Key, Auto Increment)
+- `token`: `VARCHAR(255)` (Not Null)
+- `userId`: `INT` (Foreign Key mengarah ke `users.id`)
+- `createdAt`: `TIMESTAMP` (Default Current Timestamp)
 
-2. **`sessions` Table**
-   - `id` (Integer, Primary Key, Auto Increment)
-   - `token` (Text, Unique, Not Null) - UUID acak sebagai ID sesi akses.
-   - `userId` (Integer, Not Null) - *Foreign Key* merujuk pada tabel `users.id`.
-   - `createdAt` (Text, Not Null) - Timestamp bawaan.
+## API yang Tersedia
 
----
+Base URL: `http://localhost:3000` (jika menggunakan default port)
 
-## 📡 Available APIs
+| Endpoint | Method | Headers | Body | Deskripsi |
+|---|---|---|---|---|
+| `/api/users` | `POST` | - | `{ "name": "...", "email": "...", "password": "..." }` | Registrasi user baru |
+| `/api/users/login` | `POST` | - | `{ "email": "...", "password": "..." }` | Login user, mengembalikan token string |
+| `/api/users/current` | `GET` | `Authorization: Bearer <token>` | - | Mengambil data diri user (id, name, email) |
+| `/api/users/logout` | `DELETE`| `Authorization: Bearer <token>` | - | Logout user (menghapus session database) |
 
-### 1. Register User
-- **Endpoint**: `POST /api/users`
-- **Body**:
-  ```json
-  {
-    "nama": "Budi", // 3 - 100 Karakter
-    "email": "budi@example.com", // Format Email Valid, Max 150 Karakter
-    "password": "password123" // 6 - 255 Karakter
-  }
-  ```
-- **Response (200 OK)**: `{"data": "ok"}`
+## Cara Setup Project
 
-### 2. Login User
-- **Endpoint**: `POST /api/users/login`
-- **Body**:
-  ```json
-  {
-    "email": "budi@example.com",
-    "password": "password123"
-  }
-  ```
-- **Response (200 OK)**:
-  ```json
-  {
-    "data": "550e8400-e29b-41d4-a716-446655440000" // Session Token UUID
-  }
-  ```
-
-### 3. Get Current User Profile
-- **Endpoint**: `GET /api/users/current`
-- **Headers**:
-  - `Authorization`: `Bearer <token>`
-- **Response (200 OK)**:
-  ```json
-  {
-    "data": {
-      "id": 1,
-      "nama": "Budi",
-      "email": "budi@example.com",
-      "created_at": "CURRENT_TIMESTAMP"
-    }
-  }
-  ```
-
-### 4. Logout User
-- **Endpoint**: `DELETE /api/users/logout`
-- **Headers**:
-  - `Authorization`: `Bearer <token>`
-- **Response (200 OK)**: `{"data": "ok"}` (Session token akan dihapus dari tabel sessions).
-
-> *Semua kegagalan API akan mengembalikan status `400 Bad Request`, `401 Unauthorized`, atau pesan error kustom dalam struktur `{ "data": "Pesan Error" }`*.
-
----
-
-## 🚀 Cara Setup & Run Project
-
-1. **Install Dependencies**
-   Pastikan Anda sudah menginstal [Bun](https://bun.sh/) di komputer lokal Anda, kemudian jalankan:
+1. Pastikan [Bun](https://bun.sh/) dan MySQL database server sudah terinstall di komputer Anda.
+2. Clone repository proyek ini dan masuk ke dalam foldernya.
+3. Install seluruh dependencies dengan perintah:
    ```bash
    bun install
    ```
-
-2. **Setup Database (Sinkronisasi ORM)**
-   Proyek ini menggunakan SQLite, sehingga tidak perlu menginstall MariaDB/MySQL. Anda hanya perlu mensinkronisasi skema ke dalam file `sqlite.db`:
+4. Buat database MySQL baru, misalnya: `belajar_vibe_coding`.
+5. Buat file `.env` di dalam root direktori proyek (jika belum ada), lalu isikan konfigurasi database berikut (sesuaikan dengan username dan password database lokal Anda):
+   ```env
+   DB_HOST=localhost
+   DB_USER=root
+   DB_PASSWORD=
+   DB_NAME=belajar_vibe_coding
+   ```
+6. Sinkronisasi (push) schema database untuk membuat tabel ke dalam MySQL dengan menjalankan perintah:
    ```bash
-   bun run db:push
+   bunx drizzle-kit push
    ```
 
-3. **Menjalankan Server (Development)**
-   Gunakan mode *watch* agar server melakukan memuat ulang (*hot-reload*) otomatis jika terjadi perubahan kode sumber:
-   ```bash
-   bun run dev
-   ```
-   *Aplikasi akan berjalan secara lokal pada alamat `http://localhost:3000`.*
+## Cara Run Aplikasi
 
----
+Untuk menjalankan server dalam mode **development** (otomatis restart jika ada perubahan file):
+```bash
+bun run dev
+```
 
-## 🧪 Cara Test Aplikasi
+Untuk menjalankan aplikasi standar (tanpa watch/reload file):
+```bash
+bun run src/index.ts
+```
+Jika tidak ada error, Anda akan melihat log `🦊 Elysia is running at localhost:3000`.
 
-Proyek ini dilengkapi dengan serangkaian pengujian terotomatisasi (*Unit Testing*) menggunakan *Test Runner* gahar dari Bun yang terintegrasi secara bawaan. Semua pengujian akan membersihkan database sebelum bekerja (`beforeEach`).
+## Cara Test Aplikasi
 
-Untuk menjalankan seluruh rangkaian tes:
+Proyek ini telah dikonfigurasi menggunakan test runner bawaan dari Bun (`bun:test`). Seluruh pengujian disimpan di folder `tests/`.
+
+Untuk mengeksekusi seluruh pengujian (integration testing API register, login, current, logout) jalankan perintah:
 ```bash
 bun test
 ```
-*(Seluruh skenario pengujian akan tervalidasi dan menampilkan laporan secara instan di terminal).*
+**Catatan:** Pastikan koneksi dan tabel database (via `.env` dan `drizzle-kit push`) sudah berhasil disetup sebelum menjalankan test, karena test akan melakukan proses baca/tulis terhadap database secara real.
