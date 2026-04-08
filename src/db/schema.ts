@@ -1,17 +1,16 @@
-import { sqliteTable, integer, text } from 'drizzle-orm/sqlite-core';
+import { mysqlTable, serial, varchar, timestamp } from "drizzle-orm/mysql-core";
 
-export const users = sqliteTable('users', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  username: text('username').notNull(),
-  email: text('email').notNull().unique(),
-  password: text('password').notNull(),
-  createdAt: text('created_at').default('CURRENT_TIMESTAMP').notNull(),
-  updatedAt: text('updated_at').default('CURRENT_TIMESTAMP').notNull(),
+export const users = mysqlTable("users", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  email: varchar("email", { length: 255 }).notNull().unique(),
+  password: varchar("password", { length: 255 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const sessions = sqliteTable('sessions', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  token: text('token').notNull().unique(),
-  userId: integer('user_id').notNull().references(() => users.id),
-  createdAt: text('created_at').default('CURRENT_TIMESTAMP').notNull(),
+export const sessions = mysqlTable("sessions", {
+  id: serial("id").primaryKey(),
+  token: varchar("token", { length: 255 }).notNull(),
+  userId: serial("user_id").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
 });
