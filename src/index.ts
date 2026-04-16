@@ -1,6 +1,7 @@
 import { Elysia } from "elysia";
 import { swagger } from "@elysiajs/swagger";
 import { usersRoute } from "./routes/users-route";
+import { todosRoute } from "./routes/todos-route";
 
 export const app = new Elysia()
   .use(swagger({
@@ -16,6 +17,7 @@ export const app = new Elysia()
     },
   }))
   .use(usersRoute)
+  .use(todosRoute)
   .get("/", () => "Hello World");
 
 if (process.env.NODE_ENV !== "test") {
